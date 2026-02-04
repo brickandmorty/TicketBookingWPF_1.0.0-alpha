@@ -6,10 +6,9 @@
     
     <!-- Darstellungs Config für komplett ausgebuchten Tag -->
     <Window.Resources>
-        <vm:DateToStrikethroughConverter x:Key="DateToStrikethroughConverter"/>
         <vm:DateToBackgroundConverter x:Key="DateToBackgroundConverter"/>
         <vm:DateToForegroundConverter x:Key="DateToForegroundConverter"/>
-        
+
         <!-- Sicherstellen, dass der Style im richtigen Scope deklariert ist -->
         <Style x:Key="FullyBookedCalendarDayButtonStyle" TargetType="{x:Type CalendarDayButton}">
             <Setter Property="MinWidth" Value="28"/>
@@ -24,7 +23,8 @@
                                 CornerRadius="3">
                             <Border.Background>
                                 <MultiBinding Converter="{StaticResource DateToBackgroundConverter}" ConverterParameter="">
-                                    <Binding RelativeSource="{RelativeSource TemplatedParent}" Path="DataContext"/>
+                                    <!-- Korrigierte Bindings: CalendarDayButton.Content ist das Datum -->
+                                    <Binding RelativeSource="{RelativeSource TemplatedParent}" Path="Content"/>
                                     <Binding Path="DataContext.FullyBookedDates" RelativeSource="{RelativeSource AncestorType=Calendar}"/>
                                 </MultiBinding>
                             </Border.Background>
@@ -34,7 +34,7 @@
                                       FontWeight="SemiBold">
                                 <TextBlock.Foreground>
                                     <MultiBinding Converter="{StaticResource DateToForegroundConverter}" ConverterParameter="">
-                                        <Binding RelativeSource="{RelativeSource TemplatedParent}" Path="DataContext"/>
+                                        <Binding RelativeSource="{RelativeSource TemplatedParent}" Path="Content"/>
                                         <Binding Path="DataContext.FullyBookedDates" RelativeSource="{RelativeSource AncestorType=Calendar}"/>
                                     </MultiBinding>
                                 </TextBlock.Foreground>
@@ -63,12 +63,49 @@
             </MenuItem>
         </Menu>
 
-        <!-- TOOLBAR - aktuell redundant, zusätzliche Features noch in Ausarbeitung-->
+        <!-- TOOLBAR -->
         <Grid DockPanel.Dock="Top">
             <ToolBarTray>
                 <ToolBar>
-                    <Button Content="Verwalten" Command="{Binding NewBookingCommand}" ToolTip="Neue Buchung anlegen (Dialog mit DatePicker)"/>
-                    <Button Content="Exporte" Command="{Binding CopyBookingCommand}" ToolTip="Ausgewählte Buchung kopieren (Daten werden vorbefüllt, nächster freier Tag wird vorgeschlagen)" />
+                    <!-- Verwalten DropDown Button -->
+                    <Button Content="Verwalten ▼" ToolTip="Verwaltungsoptionen">
+                        <Button.ContextMenu>
+                            <ContextMenu>
+                                <MenuItem Header="Buchungsübersicht" Command="{Binding ShowBookingOverviewCommand}" />
+                                <MenuItem Header="Ticketverwaltung" Command="{Binding ManageTicketsCommand}" />
+                                <Separator/>
+                                <MenuItem Header="Einstellungen" Command="{Binding ShowSettingsCommand}" />
+                            </ContextMenu>
+                        </Button.ContextMenu>
+                        <Button.Style>
+                            <Style TargetType="Button">
+                                <EventSetter Event="Click" Handler="DropDownButton_Click"/>
+                            </Style>
+                        </Button.Style>
+                    </Button>
+                    
+                    <!-- Exporte DropDown Button -->
+                    <Button Content="Exporte ▼" ToolTip="Buchungen exportieren">
+                        <Button.ContextMenu>
+                            <ContextMenu>
+                                <MenuItem Header="Als PDF exportieren..." Command="{Binding ExportPdfCommand}">
+                                    <MenuItem.Icon>
+                                        <TextBlock Text="📄" FontSize="14"/>
+                                    </MenuItem.Icon>
+                                </MenuItem>
+                                <MenuItem Header="Als Excel exportieren..." Command="{Binding ExportExcelCommand}">
+                                    <MenuItem.Icon>
+                                        <TextBlock Text="📊" FontSize="14"/>
+                                    </MenuItem.Icon>
+                                </MenuItem>
+                            </ContextMenu>
+                        </Button.ContextMenu>
+                        <Button.Style>
+                            <Style TargetType="Button">
+                                <EventSetter Event="Click" Handler="DropDownButton_Click"/>
+                            </Style>
+                        </Button.Style>
+                    </Button>
                 </ToolBar>
             </ToolBarTray>
         </Grid>

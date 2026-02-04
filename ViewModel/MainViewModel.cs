@@ -1,9 +1,12 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.IO;
 using System.Linq;
 using System.Windows;
+using Microsoft.Win32;
 using TicketBookingWPF.Repository;
+using TicketBookingWPF.Services;
 using TicketBookingWPF.View;
 
 namespace TicketBookingWPF.ViewModel
@@ -11,6 +14,7 @@ namespace TicketBookingWPF.ViewModel
     public class MainViewModel : NotifyPropertyChangedBase
     {
         private readonly BookingRepository _repo = new BookingRepository();
+        private readonly ExportService _exportService;
 
         public ObservableCollection<TicketStatusItem> Tickets { get; } = new ObservableCollection<TicketStatusItem>();
 
@@ -35,10 +39,18 @@ namespace TicketBookingWPF.ViewModel
             set { _statusText = value; OnPropertyChanged(); }
         }
 
+        // Commands für Verwalten
         public RelayCommand NewBookingCommand { get; }
         public RelayCommand CopyBookingCommand { get; }
         public RelayCommand DeleteCommand { get; }
         public RelayCommand ExitCommand { get; }
+
+        // Neue Commands
+        public RelayCommand ShowBookingOverviewCommand { get; }
+        public RelayCommand ManageTicketsCommand { get; }
+        public RelayCommand ShowSettingsCommand { get; }
+        public RelayCommand ExportPdfCommand { get; }
+        public RelayCommand ExportExcelCommand { get; }
 
         private HashSet<DateTime> _fullyBookedDates = new HashSet<DateTime>();
         public HashSet<DateTime> FullyBookedDates
@@ -64,10 +76,20 @@ namespace TicketBookingWPF.ViewModel
 
         public MainViewModel()
         {
+            _exportService = new ExportService(_repo);
+
+            // Bestehende Commands
             NewBookingCommand = new RelayCommand(OpenNewDialog);
             CopyBookingCommand = new RelayCommand(OpenCopyDialog, CanCopy);
             DeleteCommand = new RelayCommand(Delete, CanDelete);
             ExitCommand = new RelayCommand(() => Application.Current.Shutdown());
+
+            // Neue Commands
+            ShowBookingOverviewCommand = new RelayCommand(ShowBookingOverview);
+            ManageTicketsCommand = new RelayCommand(ManageTickets);
+            ShowSettingsCommand = new RelayCommand(ShowSettings);
+            ExportPdfCommand = new RelayCommand(ExportToPdf);
+            ExportExcelCommand = new RelayCommand(ExportToExcel);
 
             _repo.EnsureDefaultTickets(10);
             LoadTicketsOnce();
@@ -303,6 +325,140 @@ namespace TicketBookingWPF.ViewModel
                 defaultNote: existing.Note);
 
             StatusText = $"Vorschlag: nächster freier Tag ist {suggestedDate:dd.MM.yyyy}.";
+        }
+
+        private void ShowBookingOverview()
+        {
+            MessageBox.Show("Buchungsübersicht - wird in einer zukünftigen Version implementiert", "Info", 
+                MessageBoxButton.OK, MessageBoxImage.Information);
+        }
+
+        private void ManageTickets()
+        {
+            MessageBox.Show("Ticketverwaltung - wird in einer zukünftigen Version implementiert", "Info", 
+                MessageBoxButton.OK, MessageBoxImage.Information);
+        }
+
+        private void ShowSettings()
+        {
+            MessageBox.Show("Einstellungen - wird in einer zukünftigen Version implementiert", "Info", 
+                MessageBoxButton.OK, MessageBoxImage.Information);
+        }
+
+        private void ExportToPdf()
+        {
+            var dialog = new ExportDialog
+            {
+                Owner = Application.Current.MainWindow,
+                Title = "PDF-Export"
+            };
+
+            if (dialog.ShowDialog() == true)
+            {
+                // Prüfe, ob Datum-Werte gesetzt sind
+                if (!dialog.StartDate.HasValue || !dialog.EndDate.HasValue)
+                {
+                    MessageBox.Show("Bitte wählen Sie einen gültigen Zeitraum aus.", "Fehler",
+                        MessageBoxButton.OK, MessageBoxImage.Warning);
+                    return;
+                }
+
+                var saveDialog = new SaveFileDialog
+                {
+                    Filter = "PDF-Datei (*.pdf)|*.pdf",
+                    FileName = $"Buchungen_{dialog.StartDate.Value:yyyy-MM-dd}_bis_{dialog.EndDate.Value:yyyy-MM-dd}.pdf",
+                    DefaultExt = "pdf"
+                };
+
+                if (saveDialog.ShowDialog() == true)
+                {
+                    try
+                    {
+                        var filePath = _exportService.ExportToPdf(dialog.StartDate.Value.Date, dialog.EndDate.Value.Date, saveDialog.FileName);
+                        
+                        var result = MessageBox.Show(
+                            $"PDF-Export erfolgreich erstellt!\n\nDatei: {filePath}\n\nMöchten Sie die Datei jetzt öffnen?",
+                            "Export erfolgreich",
+                            MessageBoxButton.YesNo,
+                            MessageBoxImage.Information);
+
+                        if (result == MessageBoxResult.Yes)
+                        {
+                            System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo
+                            {
+                                FileName = filePath,
+                                UseShellExecute = true
+                            });
+                        }
+
+                        StatusText = $"PDF exportiert: {Path.GetFileName(filePath)}";
+                    }
+                    catch (Exception ex)
+                    {
+                        MessageBox.Show($"Fehler beim PDF-Export:\n\n{ex.Message}", "Fehler", 
+                            MessageBoxButton.OK, MessageBoxImage.Error);
+                        StatusText = "PDF-Export fehlgeschlagen";
+                    }
+                }
+            }
+        }
+
+        private void ExportToExcel()
+        {
+            var dialog = new ExportDialog
+            {
+                Owner = Application.Current.MainWindow,
+                Title = "Excel-Export"
+            };
+
+            if (dialog.ShowDialog() == true)
+            {
+                // Prüfe, ob Datum-Werte gesetzt sind
+                if (!dialog.StartDate.HasValue || !dialog.EndDate.HasValue)
+                {
+                    MessageBox.Show("Bitte wählen Sie einen gültigen Zeitraum aus.", "Fehler",
+                        MessageBoxButton.OK, MessageBoxImage.Warning);
+                    return;
+                }
+
+                var saveDialog = new SaveFileDialog
+                {
+                    Filter = "Excel-Datei (*.xlsx)|*.xlsx",
+                    FileName = $"Buchungen_{dialog.StartDate.Value:yyyy-MM-dd}_bis_{dialog.EndDate.Value:yyyy-MM-dd}.xlsx",
+                    DefaultExt = "xlsx"
+                };
+
+                if (saveDialog.ShowDialog() == true)
+                {
+                    try
+                    {
+                        var filePath = _exportService.ExportToExcel(dialog.StartDate.Value.Date, dialog.EndDate.Value.Date, saveDialog.FileName);
+                        
+                        var result = MessageBox.Show(
+                            $"Excel-Export erfolgreich erstellt!\n\nDatei: {filePath}\n\nMöchten Sie die Datei jetzt öffnen?",
+                            "Export erfolgreich",
+                            MessageBoxButton.YesNo,
+                            MessageBoxImage.Information);
+
+                        if (result == MessageBoxResult.Yes)
+                        {
+                            System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo
+                            {
+                                FileName = filePath,
+                                UseShellExecute = true
+                            });
+                        }
+
+                        StatusText = $"Excel exportiert: {Path.GetFileName(filePath)}";
+                    }
+                    catch (Exception ex)
+                    {
+                        MessageBox.Show($"Fehler beim Excel-Export:\n\n{ex.Message}", "Fehler", 
+                            MessageBoxButton.OK, MessageBoxImage.Error);
+                        StatusText = "Excel-Export fehlgeschlagen";
+                    }
+                }
+            }
         }
 
         private void UpdateCommands()

@@ -82,6 +82,7 @@
     <Compile Include="Data\BookingDbContext.cs" />
     <Compile Include="Repository\BookingRepository.cs" />
     <Compile Include="ViewModel\DateToStrikethroughConverter.cs" />
+    <Compile Include="ViewModel\DateToVisibilityConverter.cs" />
     <Compile Include="ViewModel\NotifyPropertyChangedBase.cs" />
     <Compile Include="ViewModel\RelayCommand.cs" />
     <Compile Include="ViewModel\TicketStatusItem.cs" />

@@ -7,33 +7,66 @@
     <!-- Darstellungs Config für komplett ausgebuchten Tag -->
     <Window.Resources>
         <vm:DateToStrikethroughConverter x:Key="DateToStrikethroughConverter"/>
+        <vm:DateToVisibilityConverter x:Key="DateToVisibilityConverter"/>
         
-        <Style x:Key="FullyBookedCalendarDayButtonStyle" TargetType="CalendarDayButton">
+        <!-- Sicherstellen, dass der Style im richtigen Scope deklariert ist -->
+        <Style x:Key="FullyBookedCalendarDayButtonStyle" TargetType="{x:Type CalendarDayButton}">
+            <Setter Property="MinWidth" Value="28"/>
+            <Setter Property="MinHeight" Value="28"/>
+            <Setter Property="Margin" Value="2"/>
             <Setter Property="Template">
                 <Setter.Value>
                     <ControlTemplate TargetType="CalendarDayButton">
-                        <Grid>
-                            <Border Background="{TemplateBinding Background}" 
-                                    BorderBrush="{TemplateBinding BorderBrush}" 
-                                    BorderThickness="{TemplateBinding BorderThickness}">
+                        <Border Background="{TemplateBinding Background}" 
+                                BorderBrush="{TemplateBinding BorderBrush}" 
+                                BorderThickness="{TemplateBinding BorderThickness}"
+                                Padding="2">
+                            <Grid>
+                                <!-- Datumszahl (normal) -->
                                 <TextBlock Text="{TemplateBinding Content}" 
                                           HorizontalAlignment="Center" 
-                                          VerticalAlignment="Center">
-                                    <TextBlock.TextDecorations>
-                                        <MultiBinding Converter="{StaticResource DateToStrikethroughConverter}">
+                                          VerticalAlignment="Center"
+                                          Opacity="0.4">
+                                    <TextBlock.Style>
+                                        <Style TargetType="TextBlock">
+                                            <Style.Triggers>
+                                                <DataTrigger Value="Visible">
+                                                    <DataTrigger.Binding>
+                                                        <MultiBinding Converter="{StaticResource DateToVisibilityConverter}">
+                                                            <Binding RelativeSource="{RelativeSource TemplatedParent}" Path="DataContext"/>
+                                                            <Binding Path="DataContext.FullyBookedDates" RelativeSource="{RelativeSource AncestorType=Calendar}"/>
+                                                        </MultiBinding>
+                                                    </DataTrigger.Binding>
+                                                    <Setter Property="Opacity" Value="0.3"/>
+                                                </DataTrigger>
+                                            </Style.Triggers>
+                                        </Style>
+                                    </TextBlock.Style>
+                                </TextBlock>
+                                
+                                <!-- Rotes X (nur bei ausgebuchten Tagen) -->
+                                <TextBlock Text="✖" 
+                                          FontSize="20" 
+                                          Foreground="Red" 
+                                          HorizontalAlignment="Center" 
+                                          VerticalAlignment="Center"
+                                          FontWeight="Bold">
+                                    <TextBlock.Visibility>
+                                        <MultiBinding Converter="{StaticResource DateToVisibilityConverter}">
                                             <Binding RelativeSource="{RelativeSource TemplatedParent}" Path="DataContext"/>
                                             <Binding Path="DataContext.FullyBookedDates" RelativeSource="{RelativeSource AncestorType=Calendar}"/>
                                         </MultiBinding>
-                                    </TextBlock.TextDecorations>
+                                    </TextBlock.Visibility>
                                 </TextBlock>
-                            </Border>
-                        </Grid>
+                            </Grid>
+                        </Border>
                     </ControlTemplate>
                 </Setter.Value>
             </Setter>
         </Style>
     </Window.Resources>
     
+
     <DockPanel>
 
         <!-- MENU -->

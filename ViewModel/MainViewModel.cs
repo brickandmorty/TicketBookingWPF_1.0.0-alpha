@@ -39,7 +39,17 @@ namespace TicketBookingWPF.ViewModel
         public RelayCommand CopyBookingCommand { get; }
         public RelayCommand DeleteCommand { get; }
         public RelayCommand ExitCommand { get; }
-        public HashSet<DateTime> FullyBookedDates { get; private set; }
+
+        private HashSet<DateTime> _fullyBookedDates = new HashSet<DateTime>();
+        public HashSet<DateTime> FullyBookedDates 
+        { 
+            get => _fullyBookedDates;
+            private set 
+            { 
+                _fullyBookedDates = value; 
+                OnPropertyChanged(); 
+            }
+        }
 
         public MainViewModel()
         {

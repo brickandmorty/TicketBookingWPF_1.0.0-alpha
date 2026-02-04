@@ -5,7 +5,8 @@ using System;
 namespace TicketBookingWPF.ViewModel
 {
     public class TicketStatusItem : NotifyPropertyChangedBase
-    {        public int TicketId { get; }
+    {
+        public int TicketId { get; }
         
         private string _ticketCode;
         public string TicketCode

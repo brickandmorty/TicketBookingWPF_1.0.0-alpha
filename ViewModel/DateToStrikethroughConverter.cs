@@ -15,7 +15,7 @@ namespace TicketBookingWPF.ViewModel
 
             if (values[0] is DateTime date && values[1] is HashSet<DateTime> fullyBookedDates)
             {
-                return fullyBookedDates.Contains(date.Date) 
+                return fullyBookedDates.Contains(date.Date)
                     ? TextDecorations.Strikethrough // hier legen wir das durchstreichen fest, wenn das Datum in der Liste der ausgebuchten Termine ist
                     : null;
             }

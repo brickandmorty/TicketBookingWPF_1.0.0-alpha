@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Windows;
@@ -38,6 +39,17 @@ namespace TicketBookingWPF.ViewModel
         public RelayCommand CopyBookingCommand { get; }
         public RelayCommand DeleteCommand { get; }
         public RelayCommand ExitCommand { get; }
+
+        private HashSet<DateTime> _fullyBookedDates = new HashSet<DateTime>();
+        public HashSet<DateTime> FullyBookedDates 
+        { 
+            get => _fullyBookedDates;
+            private set 
+            { 
+                _fullyBookedDates = value; 
+                OnPropertyChanged(); 
+            }
+        }
 
         public MainViewModel()
         {
@@ -107,10 +119,38 @@ namespace TicketBookingWPF.ViewModel
                 item.NextFreeDate = nextFree;
             }
 
+            // Berechne vollausgebuchte Tage
+            CalculateFullyBookedDates(rangeStart, rangeEnd, bookedByTicket);
+
             int freeCount = Tickets.Count - bookedCount;
             StatusText = $"{freeCount} frei / {bookedCount} belegt am {SelectedDate:dd.MM.yyyy}";
 
             UpdateCommands();
+        }
+
+        private void CalculateFullyBookedDates(DateTime from, DateTime to, Dictionary<int, HashSet<DateTime>> bookedByTicket)
+        {
+            var fullyBooked = new HashSet<DateTime>();
+            int totalTickets = Tickets.Count;
+
+            for (var date = from; date <= to; date = date.AddDays(1))
+            {
+                int bookedOnThisDay = 0;
+                foreach (var ticketId in Tickets.Select(t => t.TicketId))
+                {
+                    if (bookedByTicket.TryGetValue(ticketId, out var dates) && dates.Contains(date))
+                    {
+                        bookedOnThisDay++;
+                    }
+                }
+
+                if (bookedOnThisDay == totalTickets)
+                {
+                    fullyBooked.Add(date);
+                }
+            }
+
+            FullyBookedDates = fullyBooked;
         }
 
         private void OpenNewDialog(int? defaultTicketId = null,

@@ -81,6 +81,8 @@
     <Compile Include="Model\TicketBooking.cs" />
     <Compile Include="Data\BookingDbContext.cs" />
     <Compile Include="Repository\BookingRepository.cs" />
+    <Compile Include="ViewModel\DateToBackgroundConverter.cs" />
+    <Compile Include="ViewModel\DateToForegroundConverter.cs" />
     <Compile Include="ViewModel\DateToStrikethroughConverter.cs" />
     <Compile Include="ViewModel\DateToVisibilityConverter.cs" />
     <Compile Include="ViewModel\NotifyPropertyChangedBase.cs" />

@@ -1,9 +1,10 @@
 using System;
-using System.Globalization;
-using System.Windows;
-using System.Windows.Data;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
+using System.Windows;
+using System.Windows.Controls.Primitives;
+using System.Windows.Data;
 
 namespace TicketBookingWPF.ViewModel
 {
@@ -14,10 +15,13 @@ namespace TicketBookingWPF.ViewModel
             if (values.Length < 2)
                 return Visibility.Collapsed;
 
-            // Im CalendarDayButton Template ist der DataContext direkt das DateTime-Objekt
-            if (values[0] is DateTime date && values[1] is IEnumerable<DateTime> fullyBookedDates)
+            var dataContext = values[0];
+            var fullyBookedDates = values[1] as IEnumerable<DateTime>;
+
+            if (dataContext is CalendarDayButton dayButton && fullyBookedDates != null)
             {
-                return fullyBookedDates.Contains(date.Date) ? Visibility.Visible : Visibility.Collapsed;
+                var date = (DateTime)dayButton.DataContext;
+                return fullyBookedDates.Contains(date) ? Visibility.Visible : Visibility.Collapsed;
             }
 
             return Visibility.Collapsed;

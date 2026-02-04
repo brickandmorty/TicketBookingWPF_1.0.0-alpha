@@ -41,13 +41,13 @@ namespace TicketBookingWPF.ViewModel
         public RelayCommand ExitCommand { get; }
 
         private HashSet<DateTime> _fullyBookedDates = new HashSet<DateTime>();
-        public HashSet<DateTime> FullyBookedDates 
-        { 
+        public HashSet<DateTime> FullyBookedDates
+        {
             get => _fullyBookedDates;
-            private set 
-            { 
-                _fullyBookedDates = value; 
-                OnPropertyChanged(); 
+            private set
+            {
+                _fullyBookedDates = value;
+                OnPropertyChanged();
             }
         }
 

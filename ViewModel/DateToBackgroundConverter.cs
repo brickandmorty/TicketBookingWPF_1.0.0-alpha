@@ -1,7 +1,5 @@
 using System;
-using System.Collections.Generic;
 using System.Globalization;
-using System.Linq;
 using System.Windows.Data;
 using System.Windows.Media;
 
@@ -11,18 +9,19 @@ namespace TicketBookingWPF.ViewModel
     {
         public object Convert(object[] values, Type targetType, object parameter, CultureInfo culture)
         {
-            if (values.Length < 2)
-                return Brushes.Transparent;
-
-            // Im CalendarDayButton Template ist der DataContext direkt das DateTime-Objekt
-            if (values[0] is DateTime date && values[1] is IEnumerable<DateTime> fullyBookedDates)
+            // Beispiel-Implementierung: Prüfen, ob das Datum ausgebucht ist
+            var dataContext = values[0];
+            var fullyBookedDates = values[1] as System.Collections.IEnumerable;
+            var calendarDay = dataContext as DateTime?;
+            if (calendarDay != null && fullyBookedDates != null)
             {
-                return fullyBookedDates.Contains(date.Date)
-                    ? new SolidColorBrush(Color.FromRgb(220, 53, 69)) // Bootstrap Red
-                    : Brushes.Transparent;
+                foreach (var date in fullyBookedDates)
+                {
+                    if (date is DateTime dt && dt.Date == calendarDay.Value.Date)
+                        return Brushes.LightGray; // Ausgebucht
+                }
             }
-
-            return Brushes.Transparent;
+            return Brushes.White; // Nicht ausgebucht
         }
 
         public object[] ConvertBack(object value, Type[] targetTypes, object parameter, CultureInfo culture)

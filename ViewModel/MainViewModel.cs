@@ -51,6 +51,17 @@ namespace TicketBookingWPF.ViewModel
             }
         }
 
+        private string _fullyBookedDatesText = string.Empty;
+        public string FullyBookedDatesText
+        {
+            get => _fullyBookedDatesText;
+            private set
+            {
+                _fullyBookedDatesText = value;
+                OnPropertyChanged();
+            }
+        }
+
         public MainViewModel()
         {
             NewBookingCommand = new RelayCommand(OpenNewDialog);
@@ -122,6 +133,9 @@ namespace TicketBookingWPF.ViewModel
             // Berechne vollausgebuchte Tage
             CalculateFullyBookedDates(rangeStart, rangeEnd, bookedByTicket);
 
+            // Aktualisiere die Liste der ausgebuchten Tage für den aktuellen Monat
+            UpdateFullyBookedDatesForCurrentMonth();
+
             int freeCount = Tickets.Count - bookedCount;
             StatusText = $"{freeCount} frei / {bookedCount} belegt am {SelectedDate:dd.MM.yyyy}";
 
@@ -150,7 +164,39 @@ namespace TicketBookingWPF.ViewModel
                 }
             }
 
-            FullyBookedDates = fullyBooked;
+            // Immer eine neue Instanz setzen, um PropertyChanged zu triggern
+            // Wichtig, weil sonst bei FullyBookedDates nur der Inhalt geändert wird, aber nicht die Referenz
+            // und WPF somit kein Update der Bindings durchführt.
+
+            FullyBookedDates = new HashSet<DateTime>(fullyBooked);
+        }
+
+
+        // Neue Methode für Lösung des FullyBookedBAckground Proplems, die die Liste der vollständig ausgebuchten Tage für den aktuellen Monat aktualisiert
+        // dadurch hat der User immer die Information, welche Tage im aktuellen Monat bereits komplett ausgebucht sind, ohne dass er den Kalender die konrketen Tage anklicken muss
+        private void UpdateFullyBookedDatesForCurrentMonth()
+        {
+            // Hole das Jahr und den Monat des ausgewählten Datums
+            var selectedYear = SelectedDate.Year;
+            var selectedMonth = SelectedDate.Month;
+
+            // Filtere alle vollständig ausgebuchten Tage, die im selben Monat liegen
+            var fullyBookedInMonth = FullyBookedDates
+                .Where(d => d.Year == selectedYear && d.Month == selectedMonth)
+                .OrderBy(d => d.Day)
+                .ToList();
+
+            // Erstelle den Anzeigetext
+            if (fullyBookedInMonth.Count == 0)
+            {
+                FullyBookedDatesText = "Keine komplett ausgebuchten Tage in diesem Monat.";
+            }
+            else
+            {
+                var monthName = new DateTime(selectedYear, selectedMonth, 1).ToString("MMMM yyyy");
+                var datesList = string.Join(", ", fullyBookedInMonth.Select(d => d.ToString("dd.MM.yyyy")));
+                FullyBookedDatesText = $"Komplett ausgebuchte Tage im {monthName}:\n{datesList}";
+            }
         }
 
         private void OpenNewDialog(int? defaultTicketId = null,

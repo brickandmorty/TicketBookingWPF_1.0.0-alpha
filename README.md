@@ -1,4 +1,4 @@
-# KlimaticketBooker – WPF Abschlussprojekt (Interaktive Systeme)
+﻿# KlimaticketBooker – WPF Abschlussprojekt (Interaktive Systeme)
 
 ## Projektübersicht
 Diese WPF-Applikation dient zur Verwaltung von **physischen Klimatickets**, welche tageweise

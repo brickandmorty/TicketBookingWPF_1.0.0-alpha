@@ -16,6 +16,7 @@ namespace TicketBookingWPF.ViewModel
             _canExecute = canExecute;
         }
 
+        // Kleiner Hack für Kommentare: STRG + K + C, STRG + U + C
         public bool CanExecute(object? parameter) => _canExecute?.Invoke() ?? true;
 
         public void Execute(object? parameter) => _execute();
